@@ -1,14 +1,21 @@
 Name: Chua An Rong, Aaron, Kenny Chia Zhi Wei, Laurenz Dave D. Comendador, Zhang Wei Wei
-Purpose: Detecting the amount of gas coming out from the gas canister. 
-If there's any leakage of flammable gas, warning alert will be given to the staff and customers.
-Sensor used: CO2, LED light.
-Actuator: Buzzer.
-Implementation: Gas sensor will be located at the area near the gas canister, LED light and Buzzer will be located at the customer table. 
-Whenever the level of gas reaches a certain threshold, the LED light and Buzzer will be triggered as well as 
-the staff will be notified by the display panel located at the cashier counter, through dashboard. 
-*CO2 sensor only work on Arduino board and not LINKIT board*
+Purpose: 
+1. Detect Movement by seeing the change of distance with the help of ultrasonic sensor. (Check availability of the room)
+2. Air conditional temperature will be set to default when the user is not in room. (Save electricity)
+3. Manage the Noise level of the room with the help of sound sensor. (Customer will enjoy better)
+4. Food and Water can be restock contantly. (Customer Satisfactory)
 
-
+Sensors used:  Ultrasonic Sensor
+               Barometer Sensor
+               Sound Sensor
+               Pressure Sensor
+               Water Level Switch
+               
+Implementation [Room]: Ultrasonic sensor will be mounted at the ceiling and at the side of the wall, Barometer will be mounted
+in the bed, Sound Sensor at the wall near the neighbouring room and at the corridor, pressure sensor placed at the center 
+inside the tray, and water level swtich inside the dispenser.  
+ 
+*All sensors uses both LINKIT board and grove shield except pressure sensor which uses an extra breadboard and jumper wires *
 
 
 CODE : 
