@@ -17,6 +17,8 @@ inside the tray, and water level swtich inside the dispenser.
  
 *All sensors uses both LINKIT board and grove shield except pressure sensor which uses an extra breadboard and jumper wires *
 
+*The // is the comments for our coding* 
+
 
 CODE : 
 
