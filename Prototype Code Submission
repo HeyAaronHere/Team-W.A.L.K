@@ -1,1 +1,213 @@
+Name: Chua An Rong, Aaron, Kenny Chia Zhi Wei, Laurenz Dave D. Comendador, Zhang Wei Wei
+Purpose: Detecting the amount of gas coming out from the gas canister. 
+If there's any leakage of flammable gas, warning alert will be given to the staff and customers.
+Sensor used: CO2, LED light.
+Actuator: Buzzer.
+Implementation: Gas sensor will be located at the area near the gas canister, LED light and Buzzer will be located at the customer table. 
+Whenever the level of gas reaches a certain threshold, the LED light and Buzzer will be triggered as well as 
+the staff will be notified by the display panel located at the cashier counter, through dashboard. 
+*CO2 sensor only work on Arduino board and not LINKIT board*
+
+
+
+
+CODE : 
+
+// ********************************************
+// ****** START user defined definitions ******
+// ********************************************
+#include "Barometer.h"
+#include <Wire.h>
+#include "Ultrasonic.h"
+#include "rgb_lcd.h"
+#include "IotHttpClient.h"
+#include "IotUtils.h"
+#include <LWiFi.h>
+#include <string>
+
+#define WIFI_SSID                       "lornalorna"
+#define WIFI_PASSWORD                   "wenz1995"
+//connect sound sensor to Analog pin 1
+#define sound A1
+#define Threshold 30
+//set the threshold of sound sensor as 30
+#define pinTouch 5 
+//connect sound sensor to digital pin 5
+
+float temperature;
+Barometer myBarometer;
+
+rgb_lcd lcd;
+const int colorR = 218;
+const int colorG = 165;
+const int colorB = 32;
+//Define a constant variable for the LCD RGB Backlight module named lcd and set the backlight for the LCD. 
+
+Ultrasonic ultrasonic(7);
+//connect ultrasonic sensor to pin7
+
+// ******************************************
+// ****** END user defined definitions ******
+// ******************************************
+
+void setup()
+{
+   
+  myBarometer.init();
+  lcd.begin(16,2);
+  lcd.setRGB(colorR, colorG, colorB);
+  pinMode(pinTouch, INPUT);
+  //initialize the digital pin 5 as an input
+  LWiFi.begin();
+  //begin WiFi connection and connect to an access point
+  delay(6000);// wait for 6000 milliseconds
+    
+}
+
+// ******************************************
+// ****** loop() ****************************
+// ******************************************
+void loop()
+{
+    lcd.clear();
+    lcd.setCursor(0,0);
+    //clears the LCD and positions the cursor
+    lcd.print("Searching for"); 
+    //print "searching for" in LCD
+    lcd.setCursor(0,1);
+    lcd.print("Wifi AP...");
+ 
+ 
+    if ( LWiFi.connectWPA(WIFI_SSID, WIFI_PASSWORD) != 1 )
+    {
+        lcd.clear();
+        lcd.setCursor(0,0);
+        lcd.print("Fail to Connect"); 
+        lcd.setCursor(0,1);
+        lcd.print("to Wifi.");
+        //If WPA authentication fails, "Fail to Connect to Wifi" will be presented to LCD display
+    }
+    else
+    {
+        lcd.clear();
+        lcd.setCursor(0,0);
+        lcd.println("Connected to WiFi");
+        
+     //Autentication ok, successfully connects to the access poiny
+        
+       
+        srand(vm_ust_get_current_time());
+        // get the current time
+       int device_id = 1 + (rand() % 50);
+       //Randomly generate a device id
+       
+       int sensorValue = analogRead(A0);
+       // Convert the analog reading (which goes from 0 - 1023) to a voltage (0 - 5V) for pressure sensor
+       float voltage = sensorValue * (5.0 / 1023.0);
+        
+       int soundValue = analogRead(sound); // get data from sound sensor
+       
+       temperature = myBarometer.bmp085GetTemperature(myBarometer.bmp085ReadUT());
+       // Get the temperature, bmp085ReadUT MUST be called first
+        
+        
+        int state = digitalRead(pinTouch); // get input from touch sensor
+        
+        int RangeInCentimeters; // ultrasonic sensor
+        RangeInCentimeters = ultrasonic.MeasureInCentimeters();
+        delay(150);
+        lcd.clear();
+        lcd.setCursor(0,0);
+        lcd.print("Dist:");
+        lcd.setCursor(0,1) ;
+        lcd.print(RangeInCentimeters,DEC);
+        lcd.print(" cm");
+        //LCD starts to display data from ultrasonic sensor 
+        
+        lcd.setCursor(7,0); //barometer sensor
+        lcd.print("Temp:");
+        lcd.setCursor(7,1) ;
+        lcd.print(temperature, 2);
+        lcd.print(" C");
+        //get the current temperature from barometer sensor and display on the display
+        
+        delay(3000); 
+        
+        lcd.clear();
+        lcd.setCursor(0,0); //sound sensor
+        lcd.print("Sound:");
+        lcd.setCursor(0,1) ;
+        lcd.print(soundValue);
+        lcd.print(" dB");
+        //get soundness value from sound sensor and send it to the display
+        
+        
+        
+        lcd.setCursor(7,0); //pressure sensor
+        lcd.print("Weight:");
+        lcd.setCursor(7,1) ;
+        lcd.print(voltage);
+        lcd.print(" Kg");
+        //get the pressure and covert it to the weight then send data on the display
+        
+        delay(3000); 
+        
+     
+        
+        
+   std::string json_iot_data;
+   //declare the json data String will be used in this Sketch
+   std::string low = "Low";
+   // create a data named low contained a String data "Low"
+   std::string high= "High";
+   // create a data named high contained a String data "high"
+  if (state == 1) {
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("Juice level: ");
+    lcd.setCursor(0,1);
+    lcd.print("Low ");
+    json_iot_data += "{ \"OrangeJuiceLevel\":\"" + low + "\"";
+    delay(3000);
+    //if touch is detected,print message "low" in LCD and generate a json data under OrangeJuicelevel 
+  }
+  else {
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("Juice level: ");
+    lcd.setCursor(0,1);
+    lcd.print("High ");
+    json_iot_data += "{ \"OrangeJuiceLevel\":\"" + high + "\"";
+    //else, print message "high" in LCD and generate one json data under OrangeJuicelevel
+    delay(3000);
+  }
+  
+  
+  Serial.println(json_iot_data.c_str());
+  /* First data of device id, weight, sould value, temperature, distace value 
+  will be generated under each column below
+  then it will be shown in Serial Monitor */
+  
+  json_iot_data += ", \"DeviceId\":" + IotUtils::IntToString(device_id);
+  json_iot_data += ", \"Weight\":" + IotUtils::IntToString(sensorValue);
+  json_iot_data += ", \"Sound_value\":" + IotUtils::IntToString(soundValue);
+  json_iot_data += ", \"Temperature\":" + IotUtils::IntToString(temperature);
+  json_iot_data += ", \"Distance_value\":" + IotUtils::IntToString(RangeInCentimeters);
+  json_iot_data += " }";
+
+        // Send the JSON data to the Azure cloud and get the HTTP status code.
+        IotHttpClient     https_client;
+        
+        int http_code = https_client.SendAzureHttpsData(json_iot_data);
+
+        Serial.println("Print HTTP Code:" + String(http_code));
+        //print the HTTP Code in Serial Monitor
+      
+    }
+ 
+    LWiFi.disconnect();
+    
+    // Sleeps for a while...
+    delay(3000);
+}
 
