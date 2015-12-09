@@ -1,3 +1,5 @@
+Name: Chua An Rong, Aaron, Kenny Chia Zhi Wei, Laurenz Dave D. Comendador, Zhang Wei Wei
+
 #include "IotHttpClient.h"
 #include "vmssl.h"
 #include "LTask.h"
