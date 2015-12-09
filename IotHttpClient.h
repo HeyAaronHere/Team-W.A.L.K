@@ -1,3 +1,5 @@
+Name: Chua An Rong, Aaron, Kenny Chia Zhi Wei, Laurenz Dave D. Comendador, Zhang Wei Wei
+
 #ifndef IOTHTTPCLIENT_H
 #define IOTHTTPCLIENT_H
 
